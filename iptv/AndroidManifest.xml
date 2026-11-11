@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.your.iptv"
+    android:versionCode="12"
+    android:versionName="1.3.8">
+
+  <uses-sdk android:minSdkVersion="19" android:targetSdkVersion="19"/>
+
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+  <uses-permission android:name="android.permission.WAKE_LOCK"/>
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+
+  <!-- persistent:仅对系统分区应用生效(BOOT_COMPLETED 被乐视框架按包名剥离,
+       见 payload_autostart.sh —— APK 装入 /system/priv-app 后 AMS 开机直接拉起进程)。
+       普通安装时该标记被忽略,无副作用。 -->
+  <application
+      android:name=".App"
+      android:label="IPTV"
+      android:icon="@drawable/ic_launcher"
+      android:banner="@drawable/ic_banner"
+      android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+      android:persistent="true"
+      android:allowBackup="true">
+
+    <!-- LAUNCHER 过滤器:让应用出现在桌面"全部应用"里(修复应用中心/桌面不显示问题)-->
+    <activity
+        android:name=".PlayerActivity"
+        android:exported="true"
+        android:launchMode="singleTask"
+        android:screenOrientation="landscape"
+        android:configChanges="orientation|screenSize|keyboardHidden">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+        <category android:name="android.intent.category.LEANBACK_LAUNCHER"/>
+      </intent-filter>
+    </activity>
+
+    <receiver
+        android:name=".boot.BootReceiver"
+        android:exported="true">
+      <!-- 乐视框架按包名剥离经典开机广播(BOOT_COMPLETED/CONNECTIVITY_CHANGE/MEDIA_MOUNTED
+           实测全拦);增加开机窗口内的非"开机类"广播作穿透通道,详见 BootReceiver -->
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED"/>
+        <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+        <action android:name="android.intent.action.TIME_SET"/>
+        <action android:name="android.intent.action.USER_PRESENT"/>
+        <action android:name="android.intent.action.SCREEN_ON"/>
+        <action android:name="android.intent.action.USB_STATE"/>
+        <action android:name="android.net.wifi.WIFI_STATE_CHANGED"/>
+        <action android:name="android.net.wifi.supplicant.CONNECTION_CHANGE"/>
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.net.conn.CONNECTIVITY_CHANGE"/>
+      </intent-filter>
+      <intent-filter>
+        <action android:name="android.intent.action.MEDIA_MOUNTED"/>
+        <action android:name="android.intent.action.MEDIA_REMOVED"/>
+        <data android:scheme="file"/>
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>

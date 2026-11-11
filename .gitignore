@@ -1,0 +1,47 @@
+# ── 本地试验场 / 取证数据 / 备份(体积大,非交付物) ──────────────
+/_scratch/*
+!/_scratch/run_tests.sh
+!/_scratch/jvmtest/
+/_scratch/jvmtest/*
+!/_scratch/jvmtest/*.java
+
+/apk_backup/
+/results/
+/downloads/
+/dist/
+/envtool/
+/mirror/
+/setenv_build/
+
+# ── 构建产物与临时文件 ────────────────────────────────────────
+/iptv/build/
+/iptv/build_build.log
+/iptv/build_out.txt
+/iptv/d8out.txt
+/iptv/javac.*.args
+*.class
+*.dex
+*.apk
+*.idsig
+*.log
+
+# ── 设备 root 探索遗留(与 IPTV app 无关,勿入库) ───────────────
+/bugreport
+/dumpstate
+/cowtest.txt
+/dcow
+/dcow.c
+/my_su.c
+/installd_client
+/installd_client.c
+/su_new
+/tcpdump_orig
+/getroot.sh
+/install_su.sh
+/su_wrap.sh
+/init.rc
+/payload_*.sh
+/payload_test.txt
+
+# ── WorkBuddy 本地项目数据 ────────────────────────────────────
+/.workbuddy/
