@@ -1,4 +1,4 @@
-# 乐视 Y43(192.168.1.21)root 工具箱 + IPTV 播放器
+# 乐视 Y43 IPTV 播放器
 
 ## IPTV 播放器应用(iptv/)
 
@@ -18,48 +18,6 @@ bash _scratch/run_tests.sh        # 一键回归(构建 + 全部自动化测试)
   `硬切`(复用活动槽直接重载),`无缝换台`开关默认关(网页端同样只在桌面默认开启);
   换台由 `playing`/首帧提交,loading 提示 500ms 防抖。设置页显示版本号,方便确认部署版本
 
-## root 工具箱(日常使用,电视上已部署,重启不丢)
+## 其他本地文件
 
-```bash
-adb connect 192.168.1.21
-adb shell /data/local/tmp/getroot.sh          # 一键获得 root(约 5~10 秒)
-adb shell "/data/local/tmp/su -c 'id'"        # 使用 root 执行任意命令
-```
-
-- `getroot.sh` 用 Dirty Cow(CVE-2016-5195)把 1.6KB 的 setuid su 注入 `/system/xbin/tcpdump` 的页缓存
-- `/data/local/tmp/su` 是个包装脚本,转发到 `/system/xbin/tcpdump`(自带 setuid 位)
-- **重启后 root 自动消失**(注入只存在于内存页缓存,磁盘从未被改写),重新运行 `getroot.sh` 即可
-- **卸载**:删除电视上 `/data/local/tmp/{dcow,su_new,getroot.sh,su}` 四个文件即彻底清除
-
-## 能力说明(重要)
-
-经 adb 链路获得的 root 能力边界被 adbd 裁剪为 `CapEff=0xc0`(仅 setuid/setgid):
-- ✅ 可读写 root 属主文件、杀进程、读块设备、普通文件操作
-- ❌ 不可 mount、dmesg、drop_caches、读 system 属主的 0600 文件
-
-需要全能力 root 时用一次性注入(链路不经 adbd,能力全量):
-
-```bash
-adb push dcow /data/local/tmp/ && adb push dumpstate /data/local/tmp/dumpstate_orig
-adb shell "chmod 755 /data/local/tmp/dcow; /data/local/tmp/dcow /system/bin/dumpstate 46368 /data/local/tmp/XXX.sh; setprop ctl.start dumpstate"
-# 用完恢复: dcow /system/bin/dumpstate 46368 /data/local/tmp/dumpstate_orig,并 md5 校验 = ff07cb7c402f9ec26283e077e2210d36
-```
-
-## 为什么做不到"改系统持久化"(已验证)
-
-1. Dirty Cow 写入只进页缓存,厂商内核对只读挂载的 ext4 **禁止回写落盘**(重启即还原)
-2. `mount -o remount,rw /system` 被内核反 root 补丁拦截(全能力下假成功,实际无效;能力裁剪下直接 EPERM)
-3. 全新挂载同一分区会复用只读 superblock;可写分区(/tvconfig 等)上没有开机执行钩子
-4. eMMC 型号:三星 8GTF4R(eMMC 5.1),寿命实测 10-20%,PRE_EOL 正常(2026-11-03)
-
-## 本目录文件
-
-| 文件 | 说明 |
-|---|---|
-| dcow.c / dcow | Dirty Cow 竞争利用程序(ARMv7 freestanding,NDK 27 编译)|
-| my_su.c / su_new | 极简 setuid su(仅 setuid+exec,无守护进程)|
-| dumpstate | /system/bin/dumpstate 原始备份(md5 ff07cb7c...)|
-| tcpdump_orig | /system/xbin/tcpdump 原始备份(md5 b4f941f5...)|
-| getroot.sh / su_wrap.sh | 电视上部署的一键脚本源 |
-| payload_*.sh | 历次注入用脚本(取证留档)|
-| results/ | ext_csd、dmesg、init 侦察等采集数据 |
+设备取证脚本、采集数据、历史 APK 与交付 APK 均只保存在本地工作区或电视上,未纳入本仓库(见 `.gitignore`);`iptv/build/` 由 `build.sh` 生成,同样不入库。
